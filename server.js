@@ -204,7 +204,7 @@ app.post("/api/chats/join", (req, res) => {
 
   chat.participants.add(u);
 
-  // уведомляем всех участников, что состав изменился
+  // Уведомляем всех участников, что состав изменился
   broadcastToUsers(Array.from(chat.participants), {
     type: "chatParticipants",
     chatId: chat.id,
@@ -244,7 +244,7 @@ app.delete("/api/chats/:id", (req, res) => {
   res.json({ ok: true });
 });
 
-// WebSocket для сообщений
+// WebSocket
 wss.on("connection", (ws) => {
   let username = null;
 

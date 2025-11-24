@@ -32,10 +32,11 @@
         color: #f5f7fa;
         touch-action: manipulation;
         -ms-touch-action: manipulation;
+        overflow: hidden; /* чтобы не “ломался” скролл на мобилках */
       }
 
       .app-shell {
-        height: 100vh;
+        height: var(--app-height, 100vh);
         width: 100vw;
         display: flex;
         flex-direction: column;
@@ -903,8 +904,21 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+      // Фикс высоты для мобильных (чтобы не отрезало низ)
+      function setAppHeight() {
+        const h = window.innerHeight || document.documentElement.clientHeight;
+        document.documentElement.style.setProperty("--app-height", h + "px");
+      }
+      setAppHeight();
+      window.addEventListener("resize", setAppHeight);
+      window.addEventListener("orientationchange", setAppHeight);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", setAppHeight);
+      }
+
       const STORAGE_USER_KEY = "darkMessenger_user";
       const STORAGE_MESSAGES_PREFIX = "darkMessenger_chat_";
+      const STORAGE_LAST_CHAT_PREFIX = "darkMessenger_lastChat_";
       const MAX_MESSAGES_PER_CHAT = 1000;
 
       let currentUser = null;
@@ -915,6 +929,8 @@
       let wsReconnectDelay = 1000;
       let wsShouldReconnect = false;
       let isSending = false;
+      let outboxQueue = []; // очередь сообщений, когда сокет ещё не готов
+      let initialChatId = null; // чат, который откроем после логина/обновления
 
       let pendingChatId = null;
       let pendingChatName = "";
@@ -1009,6 +1025,30 @@
         }
       }
 
+      function getLastChatId() {
+        if (!currentUser) return null;
+        return (
+          localStorage.getItem(
+            STORAGE_LAST_CHAT_PREFIX + currentUser.username
+          ) || null
+        );
+      }
+
+      function saveLastChatId() {
+        if (!currentUser || !currentChatId) return;
+        localStorage.setItem(
+          STORAGE_LAST_CHAT_PREFIX + currentUser.username,
+          currentChatId
+        );
+      }
+
+      function clearLastChatId() {
+        if (!currentUser) return;
+        localStorage.removeItem(
+          STORAGE_LAST_CHAT_PREFIX + currentUser.username
+        );
+      }
+
       function updateConnectionStatus(isOnline) {
         if (!headerStatus) return;
         headerStatus.textContent = isOnline ? "онлайн" : "нет соединения";
@@ -1031,6 +1071,7 @@
         authScreen.style.display = "none";
         mainScreen.style.display = "flex";
         updateHeaderUser();
+        initialChatId = getLastChatId();
         connectWebSocket();
         loadChats();
       }
@@ -1092,6 +1133,15 @@
           );
           chatsCache = data.chats || [];
           renderChatList();
+
+          // если был выбран чат до перезагрузки — откроем его
+          if (initialChatId) {
+            const exists = chatsCache.find((c) => c.id === initialChatId);
+            if (exists) {
+              openChat(initialChatId);
+            }
+            initialChatId = null;
+          }
         } catch (e) {
           showToast(
             "Ошибка",
@@ -1294,6 +1344,13 @@
         return h + ":" + m;
       }
 
+      function scrollMessagesToBottom() {
+        if (!chatMessagesEl) return;
+        setTimeout(() => {
+          chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        }, 10);
+      }
+
       function appendMessageToView(msg) {
         const row = document.createElement("div");
         const isMe = currentUser && msg.from === currentUser.username;
@@ -1319,11 +1376,12 @@
           .sort((a, b) => a.timestamp - b.timestamp);
         chatMessagesEl.innerHTML = "";
         messages.forEach((msg) => appendMessageToView(msg));
-        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        scrollMessagesToBottom();
       }
 
       function openChat(chatId) {
         currentChatId = chatId;
+        saveLastChatId();
         currentChatInfo = chatsCache.find((c) => c.id === chatId) || null;
 
         chatPlaceholder.style.display = "none";
@@ -1362,16 +1420,6 @@
         let text = messageInput.value;
         if (!currentChatId || !text.trim()) return;
 
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-          showToast(
-            "Нет соединения",
-            "Переподключаемся… Попробуй ещё раз через пару секунд.",
-            "error"
-          );
-          connectWebSocket();
-          return;
-        }
-
         text = text.trim();
         const timestamp = Date.now();
         const clientId =
@@ -1388,23 +1436,41 @@
         const stored = addMessageToStore(currentChatId, localMsg);
         if (stored && currentChatId === localMsg.chatId) {
           appendMessageToView(localMsg);
-          chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+          scrollMessagesToBottom();
         }
 
         messageInput.value = "";
         messageInput.style.height = "auto";
 
+        const canSendNow = ws && ws.readyState === WebSocket.OPEN;
+
         isSending = true;
         try {
-          ws.send(
-            JSON.stringify({
-              type: "message",
+          if (canSendNow) {
+            ws.send(
+              JSON.stringify({
+                type: "message",
+                chatId: currentChatId,
+                text,
+                timestamp,
+                clientId,
+              })
+            );
+          } else {
+            // сокет ещё не готов — положим в очередь и подключимся
+            outboxQueue.push({
               chatId: currentChatId,
               text,
               timestamp,
               clientId,
-            })
-          );
+            });
+            showToast(
+              "Нет соединения",
+              "Сообщение будет отправлено, как только появится связь.",
+              "error"
+            );
+            connectWebSocket();
+          }
         } catch {
           showToast("Ошибка", "Не удалось отправить сообщение.", "error");
         } finally {
@@ -1412,6 +1478,29 @@
             isSending = false;
           }, 150);
         }
+      }
+
+      function flushOutbox() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        if (!outboxQueue.length) return;
+        const queue = [...outboxQueue];
+        outboxQueue = [];
+        queue.forEach((m) => {
+          try {
+            ws.send(
+              JSON.stringify({
+                type: "message",
+                chatId: m.chatId,
+                text: m.text,
+                timestamp: m.timestamp,
+                clientId: m.clientId,
+              })
+            );
+          } catch {
+            // если не получилось — вернём назад в очередь
+            outboxQueue.push(m);
+          }
+        });
       }
 
       function setupWebSocket() {
@@ -1434,6 +1523,7 @@
           ws.send(
             JSON.stringify({ type: "auth", username: currentUser.username })
           );
+          flushOutbox();
         });
 
         ws.addEventListener("message", (event) => {
@@ -1458,7 +1548,7 @@
             const added = addMessageToStore(msg.chatId, normalized);
             if (added && msg.chatId === currentChatId) {
               appendMessageToView(normalized);
-              chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+              scrollMessagesToBottom();
             }
           }
 
@@ -1467,6 +1557,7 @@
             if (currentChatId === deletedId) {
               currentChatId = null;
               currentChatInfo = null;
+              clearLastChatId();
               chatView.style.display = "none";
               chatPlaceholder.style.display = "flex";
               chatMessagesEl.innerHTML = "";
@@ -1571,6 +1662,7 @@
             }
           );
           localStorage.removeItem(STORAGE_MESSAGES_PREFIX + currentChatId);
+          clearLastChatId();
           currentChatId = null;
           currentChatInfo = null;
           chatView.style.display = "none";
@@ -1591,6 +1683,7 @@
           } catch {}
           ws = null;
         }
+        clearLastChatId();
         localStorage.removeItem(STORAGE_USER_KEY);
         currentUser = null;
         location.reload();
@@ -1622,6 +1715,7 @@
         messageInput.addEventListener("input", () => {
           messageInput.style.height = "auto";
           messageInput.style.height = messageInput.scrollHeight + "px";
+          scrollMessagesToBottom();
         });
 
         passwordModalCancel.addEventListener("click", () => {
@@ -1641,6 +1735,12 @@
 
         btnDeleteChat.addEventListener("click", handleDeleteChat);
         btnLogout.addEventListener("click", handleLogout);
+
+        window.addEventListener("resize", () => {
+          if (currentChatId) {
+            scrollMessagesToBottom();
+          }
+        });
       }
 
       async function bootstrap() {
