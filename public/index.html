@@ -1711,11 +1711,29 @@
           }
         });
 
+        // ----------------------------------
+
         messageInput.addEventListener("input", () => {
           messageInput.style.height = "auto";
           messageInput.style.height = messageInput.scrollHeight + "px";
           scrollMessagesToBottom();
         });
+
+        messageInput.addEventListener("focus", () => {
+          // при появлении клавиатуры сразу скроллим чат к низу
+          scrollMessagesToBottom();
+          // и чуть “подтягиваем” поле ввода в зону видимости
+          setTimeout(() => {
+            try {
+              messageInput.scrollIntoView({ block: "end", behavior: "smooth" });
+            } catch (e) {
+              // на всякий случай, если браузер не поддерживает scrollIntoView с опциями
+              messageInput.scrollIntoView();
+            }
+          }, 80);
+        });
+
+        // ----------------------------------
 
         passwordModalCancel.addEventListener("click", () => {
           closePasswordModal();
