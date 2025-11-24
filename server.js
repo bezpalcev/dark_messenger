@@ -6,13 +6,12 @@ const WebSocket = require("ws");
 const app = express();
 const server = http.createServer(app);
 
-// WebSocket на /ws — удобно и для локалки, и для Render / любых прокси
+// WebSocket на /ws
 const wss = new WebSocket.Server({ server, path: "/ws" });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Простая "база" в памяти
 // users: username -> { username, password }
 const users = new Map();
 
@@ -33,6 +32,19 @@ function generateId() {
 function sanitizeUsername(username) {
   if (typeof username !== "string") return "";
   return username.trim();
+}
+
+function broadcastToUsers(usernames, payloadObj) {
+  const payload = JSON.stringify(payloadObj);
+  for (const u of usernames) {
+    const conns = connections.get(u);
+    if (!conns) continue;
+    for (const ws of conns) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(payload);
+      }
+    }
+  }
 }
 
 // Регистрация
@@ -192,6 +204,13 @@ app.post("/api/chats/join", (req, res) => {
 
   chat.participants.add(u);
 
+  // уведомляем всех участников, что состав изменился
+  broadcastToUsers(Array.from(chat.participants), {
+    type: "chatParticipants",
+    chatId: chat.id,
+    participants: Array.from(chat.participants),
+  });
+
   res.json({ ok: true });
 });
 
@@ -214,21 +233,13 @@ app.delete("/api/chats/:id", (req, res) => {
 
   chats.delete(chatId);
 
-  const payload = JSON.stringify({
+  const payload = {
     type: "chatDeleted",
     chatId,
     by: u,
-  });
+  };
 
-  for (const participant of chat.participants) {
-    const conns = connections.get(participant);
-    if (!conns) continue;
-    for (const ws of conns) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(payload);
-      }
-    }
-  }
+  broadcastToUsers(Array.from(chat.participants), payload);
 
   res.json({ ok: true });
 });
@@ -277,17 +288,7 @@ wss.on("connection", (ws) => {
         clientId: clientId || null,
       };
 
-      const payload = JSON.stringify(out);
-
-      for (const participant of chat.participants) {
-        const conns = connections.get(participant);
-        if (!conns) continue;
-        for (const client of conns) {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(payload);
-          }
-        }
-      }
+      broadcastToUsers(Array.from(chat.participants), out);
     }
   });
 

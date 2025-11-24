@@ -194,7 +194,6 @@
         overflow: hidden;
       }
 
-      /* Левая колонка */
       .sidebar {
         width: 32%;
         min-width: 260px;
@@ -347,7 +346,6 @@
         color: #a2b6d6;
       }
 
-      /* Правая часть */
       .chat-pane {
         flex: 1;
         display: flex;
@@ -488,7 +486,7 @@
         border: 1px solid rgba(124, 144, 182, 0.9);
         background: rgba(13, 19, 35, 0.96);
         color: #f5f7fa;
-        font-size: 16px; /* чтобы не было зума на iOS */
+        font-size: 16px;
         resize: none;
         outline: none;
       }
@@ -525,7 +523,6 @@
         box-shadow: 0 6px 14px rgba(34, 197, 94, 0.65);
       }
 
-      /* Экран авторизации */
       .auth-screen {
         flex: 1;
         display: flex;
@@ -605,7 +602,7 @@
         border: 1px solid rgba(124, 144, 182, 0.9);
         background: rgba(13, 19, 35, 0.96);
         color: #f5f7fa;
-        font-size: 16px; /* >16px чтобы мобилка не зумила */
+        font-size: 16px;
         outline: none;
       }
 
@@ -633,7 +630,6 @@
         color: #a3afc7;
       }
 
-      /* Модалка */
       .modal-backdrop {
         position: fixed;
         inset: 0;
@@ -678,7 +674,6 @@
         gap: 8px;
       }
 
-      /* Тосты */
       .toast-container {
         position: fixed;
         right: 12px;
@@ -778,7 +773,6 @@
         </div>
       </header>
 
-      <!-- Экран авторизации -->
       <div class="auth-screen" id="authScreen">
         <div class="auth-card">
           <div class="auth-title">Вход в мессенджер</div>
@@ -827,7 +821,6 @@
         </div>
       </div>
 
-      <!-- Основной экран -->
       <div class="app-main" id="mainScreen" style="display: none">
         <aside class="sidebar">
           <div class="sidebar-header">
@@ -885,7 +878,6 @@
       </div>
     </div>
 
-    <!-- Модальное окно ввода пароля чата -->
     <div class="modal-backdrop" id="passwordModal">
       <div class="modal-card">
         <div class="modal-title" id="passwordModalTitle">Вход в чат</div>
@@ -922,6 +914,7 @@
       let ws = null;
       let wsReconnectDelay = 1000;
       let wsShouldReconnect = false;
+      let isSending = false;
 
       let pendingChatId = null;
       let pendingChatName = "";
@@ -1272,9 +1265,26 @@
       }
 
       function addMessageToStore(chatId, msg) {
-        const list = loadMessagesFromStorage(chatId);
+        let list = loadMessagesFromStorage(chatId);
+
+        if (msg.clientId) {
+          const exists = list.some(
+            (m) => m.clientId === msg.clientId && m.from === msg.from
+          );
+          if (exists) return false;
+        } else {
+          const exists = list.some(
+            (m) =>
+              m.from === msg.from &&
+              m.text === msg.text &&
+              m.timestamp === msg.timestamp
+          );
+          if (exists) return false;
+        }
+
         list.push(msg);
         saveMessagesToStorage(chatId, list);
+        return true;
       }
 
       function formatTime(ts) {
@@ -1347,6 +1357,8 @@
       }
 
       async function handleSendMessage() {
+        if (isSending) return;
+
         let text = messageInput.value;
         if (!currentChatId || !text.trim()) return;
 
@@ -1356,6 +1368,7 @@
             "Переподключаемся… Попробуй ещё раз через пару секунд.",
             "error"
           );
+          connectWebSocket();
           return;
         }
 
@@ -1372,12 +1385,16 @@
           clientId,
         };
 
-        addMessageToStore(currentChatId, localMsg);
-        renderMessages(currentChatId);
+        const stored = addMessageToStore(currentChatId, localMsg);
+        if (stored && currentChatId === localMsg.chatId) {
+          appendMessageToView(localMsg);
+          chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        }
 
         messageInput.value = "";
         messageInput.style.height = "auto";
 
+        isSending = true;
         try {
           ws.send(
             JSON.stringify({
@@ -1390,6 +1407,10 @@
           );
         } catch {
           showToast("Ошибка", "Не удалось отправить сообщение.", "error");
+        } finally {
+          setTimeout(() => {
+            isSending = false;
+          }, 150);
         }
       }
 
@@ -1427,15 +1448,17 @@
 
           if (msg.type === "message") {
             if (!msg.chatId) return;
-            addMessageToStore(msg.chatId, {
+            const normalized = {
               chatId: msg.chatId,
               from: msg.from,
               text: msg.text,
               timestamp: msg.timestamp,
               clientId: msg.clientId || null,
-            });
-            if (msg.chatId === currentChatId) {
-              renderMessages(currentChatId);
+            };
+            const added = addMessageToStore(msg.chatId, normalized);
+            if (added && msg.chatId === currentChatId) {
+              appendMessageToView(normalized);
+              chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
             }
           }
 
@@ -1454,6 +1477,34 @@
               );
             }
             loadChats();
+          }
+
+          if (msg.type === "chatParticipants") {
+            const { chatId, participants } = msg;
+            let changed = false;
+            chatsCache = (chatsCache || []).map((c) => {
+              if (c.id === chatId) {
+                changed = true;
+                return { ...c, participants };
+              }
+              return c;
+            });
+            if (changed) {
+              renderChatList();
+              if (currentChatId === chatId) {
+                currentChatInfo =
+                  chatsCache.find((c) => c.id === chatId) || currentChatInfo;
+                const others = (participants || []).filter(
+                  (p) => p !== currentUser.username
+                );
+                const other = others[0];
+                if (other) {
+                  chatSubtitleEl.textContent = "Собеседник: " + other;
+                } else {
+                  chatSubtitleEl.textContent = "Ждём второго участника…";
+                }
+              }
+            }
           }
         });
 
@@ -1603,7 +1654,7 @@
             switchToMainScreen();
             return;
           } catch {
-            // старые данные авторизации не подошли — покажем экран входа
+            // старые данные авторизации не подошли
           }
         }
         switchToAuthScreen();
