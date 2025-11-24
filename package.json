@@ -1,0 +1,13 @@
+{
+  "name": "lan-messenger",
+  "version": "1.0.0",
+  "description": "Простой мессенджер на 2 человека с авторизацией и чатами по паролю",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.18.0"
+  }
+}
