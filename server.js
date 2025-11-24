@@ -6,13 +6,13 @@ const WebSocket = require("ws");
 const app = express();
 const server = http.createServer(app);
 
-// WebSocket будет жить на /ws — это важно для нормального деплоя за прокси
+// WebSocket на /ws — удобно и для локалки, и для Render / любых прокси
 const wss = new WebSocket.Server({ server, path: "/ws" });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Простая "база данных" в памяти
+// Простая "база" в памяти
 // users: username -> { username, password }
 const users = new Map();
 
@@ -260,7 +260,7 @@ wss.on("connection", (ws) => {
 
     if (msg.type === "message") {
       if (!username) return;
-      const { chatId, text, timestamp } = msg;
+      const { chatId, text, timestamp, clientId } = msg;
       const chat = chats.get(chatId);
       if (!chat) return;
       if (!chat.participants.has(username)) return;
@@ -274,6 +274,7 @@ wss.on("connection", (ws) => {
         from: username,
         text: cleanText,
         timestamp: typeof timestamp === "number" ? timestamp : Date.now(),
+        clientId: clientId || null,
       };
 
       const payload = JSON.stringify(out);

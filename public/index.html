@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <title>Тёмный Мессенджер</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <style>
       * {
         box-sizing: border-box;
@@ -22,11 +25,13 @@
         margin: 0;
         background: radial-gradient(
           circle at top,
-          #273449 0,
-          #0b101c 50%,
-          #05070c 100%
+          #323e57 0,
+          #131a28 45%,
+          #070b13 100%
         );
         color: #f5f7fa;
+        touch-action: manipulation;
+        -ms-touch-action: manipulation;
       }
 
       .app-shell {
@@ -34,7 +39,7 @@
         width: 100vw;
         display: flex;
         flex-direction: column;
-        background: rgba(5, 9, 18, 0.92);
+        background: rgba(10, 15, 28, 0.95);
       }
 
       .app-header {
@@ -46,8 +51,8 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         background: linear-gradient(
           90deg,
-          rgba(19, 31, 52, 0.98),
-          rgba(9, 15, 27, 0.98)
+          rgba(35, 49, 76, 0.98),
+          rgba(15, 22, 38, 0.98)
         );
       }
 
@@ -72,14 +77,14 @@
         color: #87ffd2;
         background: radial-gradient(
           circle at 20% 0,
-          rgba(135, 255, 210, 0.25),
+          rgba(135, 255, 210, 0.3),
           transparent 60%
         );
       }
 
       .app-title-sub {
         font-size: 11px;
-        color: #bec9dd;
+        color: #d0d9ea;
       }
 
       .app-right-header {
@@ -129,8 +134,8 @@
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, #2a9d8f, #1e7a6f);
-        color: #05070c;
+        background: linear-gradient(135deg, #34d399, #22a06b);
+        color: #022013;
         box-shadow: 0 0 0 1px rgba(135, 255, 210, 0.2),
           0 10px 20px rgba(1, 189, 157, 0.4);
       }
@@ -159,7 +164,7 @@
         font-size: 11px;
         border: 1px solid rgba(255, 137, 137, 0.75);
         background: rgba(255, 99, 132, 0.08);
-        color: #ffc9c9;
+        color: #ffd4d4;
       }
 
       .btn-logout:hover {
@@ -199,8 +204,8 @@
         flex-direction: column;
         background: radial-gradient(
           circle at top left,
-          rgba(35, 142, 204, 0.25),
-          rgba(10, 16, 28, 0.98)
+          rgba(59, 130, 246, 0.3),
+          rgba(16, 24, 40, 0.98)
         );
       }
 
@@ -218,12 +223,12 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.09em;
-        color: #9fb4ce;
+        color: #c3d3ec;
       }
 
       .sidebar-hint {
         font-size: 11px;
-        color: #7f8ba0;
+        color: #9fb1cc;
       }
 
       .chat-list {
@@ -254,7 +259,7 @@
       }
 
       .chat-item:hover {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.07);
         transform: translateY(-1px);
       }
 
@@ -262,7 +267,7 @@
         width: 34px;
         height: 34px;
         border-radius: 999px;
-        background: radial-gradient(circle at 30% 0, #90e0ef, #4361ee);
+        background: radial-gradient(circle at 30% 0, #a5d8ff, #4c6ef5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -293,11 +298,12 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        color: #e4ecff;
       }
 
       .chat-owner {
         font-size: 11px;
-        color: #b0c2de;
+        color: #c4d2eb;
       }
 
       .chat-tags {
@@ -310,25 +316,25 @@
         font-size: 10px;
         padding: 2px 6px;
         border-radius: 999px;
-        border: 1px solid rgba(151, 203, 255, 0.4);
-        color: #c0d9ff;
+        border: 1px solid rgba(151, 203, 255, 0.5);
+        color: #d6e4ff;
         text-transform: uppercase;
         letter-spacing: 0.06em;
       }
 
       .tag-danger {
-        border-color: rgba(255, 132, 132, 0.6);
-        color: #ffb3b3;
+        border-color: rgba(255, 132, 132, 0.7);
+        color: #ffd0d0;
       }
 
       .sidebar-empty {
         padding: 14px 12px 16px;
         font-size: 13px;
-        color: #93a6bf;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        color: #b0c2dd;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
         background: radial-gradient(
           circle at bottom left,
-          rgba(47, 128, 237, 0.22),
+          rgba(59, 130, 246, 0.25),
           transparent 60%
         );
         flex-shrink: 0;
@@ -338,7 +344,7 @@
         display: block;
         margin-top: 4px;
         font-size: 12px;
-        color: #8da4c2;
+        color: #a2b6d6;
       }
 
       /* Правая часть */
@@ -348,8 +354,8 @@
         flex-direction: column;
         background: radial-gradient(
           circle at top right,
-          rgba(42, 157, 143, 0.18),
-          rgba(7, 11, 22, 0.98)
+          rgba(45, 212, 191, 0.25),
+          rgba(12, 20, 38, 0.98)
         );
         min-width: 0;
       }
@@ -359,7 +365,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #9aadc3;
+        color: #c0cde6;
         font-size: 14px;
         padding: 20px;
         text-align: center;
@@ -373,8 +379,8 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         background: linear-gradient(
           90deg,
-          rgba(6, 11, 22, 0.98),
-          rgba(8, 15, 27, 0.98)
+          rgba(15, 23, 42, 0.98),
+          rgba(12, 21, 38, 0.98)
         );
         flex-shrink: 0;
       }
@@ -388,11 +394,12 @@
       .chat-header-title {
         font-size: 15px;
         font-weight: 500;
+        color: #eef2ff;
       }
 
       .chat-header-sub {
         font-size: 12px;
-        color: #8fa0b7;
+        color: #b0c2dd;
       }
 
       .chat-messages {
@@ -403,8 +410,8 @@
         scrollbar-color: rgba(166, 192, 222, 0.6) transparent;
         background: radial-gradient(
           circle at top,
-          rgba(30, 43, 68, 0.7),
-          rgba(6, 9, 18, 0.98)
+          rgba(48, 63, 97, 0.8),
+          rgba(10, 16, 32, 0.98)
         );
         min-height: 0;
       }
@@ -431,7 +438,7 @@
         max-width: 78%;
         padding: 7px 10px;
         border-radius: 16px;
-        font-size: 13px;
+        font-size: 14px;
         line-height: 1.35;
         position: relative;
         word-wrap: break-word;
@@ -439,21 +446,21 @@
       }
 
       .msg-me {
-        background: linear-gradient(135deg, #2ecc71, #27ae60);
-        color: #032107;
+        background: linear-gradient(135deg, #34d399, #22c55e);
+        color: #02220f;
         border-bottom-right-radius: 4px;
       }
 
       .msg-other {
-        background: rgba(29, 39, 61, 0.96);
-        border: 1px solid rgba(106, 123, 150, 0.8);
+        background: rgba(30, 41, 70, 0.96);
+        border: 1px solid rgba(124, 144, 182, 0.9);
         color: #e5edf8;
         border-bottom-left-radius: 4px;
       }
 
       .msg-meta {
-        font-size: 10px;
-        opacity: 0.85;
+        font-size: 11px;
+        opacity: 0.9;
         margin-top: 3px;
         text-align: right;
       }
@@ -463,8 +470,8 @@
         border-top: 1px solid rgba(255, 255, 255, 0.06);
         background: linear-gradient(
           180deg,
-          rgba(6, 11, 22, 0.98),
-          rgba(3, 6, 11, 0.98)
+          rgba(17, 24, 39, 0.98),
+          rgba(9, 13, 26, 0.98)
         );
         display: flex;
         align-items: flex-end;
@@ -474,48 +481,48 @@
 
       .chat-input {
         flex: 1;
-        min-height: 38px;
+        min-height: 40px;
         max-height: 120px;
         padding: 8px 10px;
         border-radius: 14px;
-        border: 1px solid rgba(106, 123, 150, 0.7);
-        background: rgba(5, 10, 19, 0.92);
+        border: 1px solid rgba(124, 144, 182, 0.9);
+        background: rgba(13, 19, 35, 0.96);
         color: #f5f7fa;
-        font-size: 13px;
+        font-size: 16px; /* чтобы не было зума на iOS */
         resize: none;
         outline: none;
       }
 
       .chat-input:focus {
-        border-color: #2a9d8f;
-        box-shadow: 0 0 0 1px rgba(42, 157, 143, 0.7);
+        border-color: #34d399;
+        box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.8);
       }
 
       .btn-send {
-        padding-inline: 14px;
+        padding-inline: 16px;
         border-radius: 999px;
-        height: 36px;
+        height: 38px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 13px;
-        background: linear-gradient(135deg, #2ecc71, #27ae60);
-        color: #032107;
+        background: linear-gradient(135deg, #34d399, #22c55e);
+        color: #02220f;
         border: none;
         cursor: pointer;
-        box-shadow: 0 10px 22px rgba(39, 174, 96, 0.55);
+        box-shadow: 0 10px 22px rgba(34, 197, 94, 0.55);
         transition: background 0.15s ease, transform 0.08s ease,
           box-shadow 0.15s ease;
       }
 
       .btn-send:hover {
         transform: translateY(-1px);
-        box-shadow: 0 14px 30px rgba(39, 174, 96, 0.7);
+        box-shadow: 0 14px 30px rgba(34, 197, 94, 0.7);
       }
 
       .btn-send:active {
         transform: translateY(1px) scale(0.98);
-        box-shadow: 0 6px 14px rgba(39, 174, 96, 0.65);
+        box-shadow: 0 6px 14px rgba(34, 197, 94, 0.65);
       }
 
       /* Экран авторизации */
@@ -527,8 +534,8 @@
         padding: 18px 16px 20px;
         background: radial-gradient(
           circle at top,
-          rgba(42, 157, 143, 0.3),
-          rgba(6, 10, 20, 0.98)
+          rgba(52, 211, 153, 0.28),
+          rgba(10, 16, 30, 0.98)
         );
         min-height: 0;
       }
@@ -536,7 +543,7 @@
       .auth-card {
         width: 100%;
         max-width: 380px;
-        background: rgba(7, 12, 24, 0.98);
+        background: rgba(15, 23, 42, 0.98);
         border-radius: 18px;
         padding: 18px 18px 16px;
         border: 1px solid rgba(255, 255, 255, 0.06);
@@ -551,7 +558,7 @@
 
       .auth-subtitle {
         font-size: 13px;
-        color: #9fb4ce;
+        color: #c1d0ea;
         margin-bottom: 14px;
       }
 
@@ -559,7 +566,7 @@
         display: flex;
         gap: 8px;
         margin-bottom: 14px;
-        background: rgba(3, 7, 14, 0.96);
+        background: rgba(9, 13, 26, 0.96);
         padding: 3px;
         border-radius: 999px;
       }
@@ -571,13 +578,13 @@
         border-radius: 999px;
         padding: 6px 2px;
         font-size: 13px;
-        color: #9fb4ce;
+        color: #aab8d5;
         cursor: pointer;
         transition: background 0.15s ease, color 0.15s ease;
       }
 
       .auth-tab.active {
-        background: rgba(42, 157, 143, 0.18);
+        background: rgba(52, 211, 153, 0.2);
         color: #e9f5ff;
       }
 
@@ -588,23 +595,23 @@
       .field-label {
         font-size: 12px;
         margin-bottom: 4px;
-        color: #b6c3d8;
+        color: #c5d3ed;
       }
 
       .field-input {
         width: 100%;
         padding: 8px 10px;
         border-radius: 12px;
-        border: 1px solid rgba(106, 123, 150, 0.7);
-        background: rgba(5, 10, 19, 0.92);
+        border: 1px solid rgba(124, 144, 182, 0.9);
+        background: rgba(13, 19, 35, 0.96);
         color: #f5f7fa;
-        font-size: 13px;
+        font-size: 16px; /* >16px чтобы мобилка не зумила */
         outline: none;
       }
 
       .field-input:focus {
-        border-color: #2a9d8f;
-        box-shadow: 0 0 0 1px rgba(42, 157, 143, 0.7);
+        border-color: #34d399;
+        box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.8);
       }
 
       .auth-actions {
@@ -623,7 +630,7 @@
       .helper-text {
         margin-top: 4px;
         font-size: 11px;
-        color: #7f8ba0;
+        color: #a3afc7;
       }
 
       /* Модалка */
@@ -655,6 +662,7 @@
         font-size: 15px;
         font-weight: 500;
         margin-bottom: 4px;
+        color: #e5edff;
       }
 
       .modal-sub {
@@ -682,7 +690,7 @@
       }
 
       .toast {
-        background: rgba(7, 13, 24, 0.97);
+        background: rgba(9, 14, 25, 0.97);
         border-radius: 12px;
         padding: 8px 12px;
         font-size: 12px;
@@ -758,7 +766,9 @@
                 id="headerUsername"
                 style="font-size: 13px; font-weight: 500"
               ></div>
-              <div style="font-size: 11px; color: #7f8ba0">в сети</div>
+              <div id="headerStatus" style="font-size: 11px; color: #ffb4b4">
+                нет соединения
+              </div>
             </div>
             <div class="app-user-avatar" id="headerAvatar">?</div>
           </div>
@@ -903,12 +913,15 @@
     <script>
       const STORAGE_USER_KEY = "darkMessenger_user";
       const STORAGE_MESSAGES_PREFIX = "darkMessenger_chat_";
+      const MAX_MESSAGES_PER_CHAT = 1000;
 
       let currentUser = null;
       let currentChatId = null;
       let currentChatInfo = null;
       let chatsCache = [];
       let ws = null;
+      let wsReconnectDelay = 1000;
+      let wsShouldReconnect = false;
 
       let pendingChatId = null;
       let pendingChatName = "";
@@ -924,6 +937,7 @@
       const appUserInfo = document.getElementById("appUserInfo");
       const headerUsername = document.getElementById("headerUsername");
       const headerAvatar = document.getElementById("headerAvatar");
+      const headerStatus = document.getElementById("headerStatus");
       const btnLogout = document.getElementById("btnLogout");
 
       const chatListEl = document.getElementById("chatList");
@@ -1000,6 +1014,12 @@
         } catch {
           return null;
         }
+      }
+
+      function updateConnectionStatus(isOnline) {
+        if (!headerStatus) return;
+        headerStatus.textContent = isOnline ? "онлайн" : "нет соединения";
+        headerStatus.style.color = isOnline ? "#8be6b0" : "#ffb4b4";
       }
 
       function updateHeaderUser() {
@@ -1219,6 +1239,14 @@
         }
       }
 
+      function trimMessages(messages) {
+        if (!Array.isArray(messages)) return [];
+        if (messages.length > MAX_MESSAGES_PER_CHAT) {
+          return messages.slice(messages.length - MAX_MESSAGES_PER_CHAT);
+        }
+        return messages;
+      }
+
       function loadMessagesFromStorage(chatId) {
         try {
           const raw = localStorage.getItem(STORAGE_MESSAGES_PREFIX + chatId);
@@ -1233,22 +1261,20 @@
 
       function saveMessagesToStorage(chatId, messages) {
         try {
+          const trimmed = trimMessages(messages);
           localStorage.setItem(
             STORAGE_MESSAGES_PREFIX + chatId,
-            JSON.stringify(messages)
+            JSON.stringify(trimmed)
           );
         } catch {
           // ignore
         }
       }
 
-      function renderMessages(chatId) {
-        const messages = loadMessagesFromStorage(chatId);
-        chatMessagesEl.innerHTML = "";
-        messages.forEach((msg) => {
-          appendMessageToView(msg, true);
-        });
-        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      function addMessageToStore(chatId, msg) {
+        const list = loadMessagesFromStorage(chatId);
+        list.push(msg);
+        saveMessagesToStorage(chatId, list);
       }
 
       function formatTime(ts) {
@@ -1258,7 +1284,7 @@
         return h + ":" + m;
       }
 
-      function appendMessageToView(msg, skipSave) {
+      function appendMessageToView(msg) {
         const row = document.createElement("div");
         const isMe = currentUser && msg.from === currentUser.username;
         row.className = "msg-row " + (isMe ? "me" : "");
@@ -1275,13 +1301,14 @@
         bubble.appendChild(meta);
         row.appendChild(bubble);
         chatMessagesEl.appendChild(row);
+      }
 
-        if (!skipSave && currentChatId) {
-          const messages = loadMessagesFromStorage(currentChatId);
-          messages.push(msg);
-          saveMessagesToStorage(currentChatId, messages);
-        }
-
+      function renderMessages(chatId) {
+        const messages = loadMessagesFromStorage(chatId)
+          .slice()
+          .sort((a, b) => a.timestamp - b.timestamp);
+        chatMessagesEl.innerHTML = "";
+        messages.forEach((msg) => appendMessageToView(msg));
         chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
       }
 
@@ -1315,98 +1342,139 @@
           btnDeleteChat.style.display = "none";
         }
 
-        chatMessagesEl.innerHTML = "";
         renderMessages(chatId);
         messageInput.focus();
       }
 
       async function handleSendMessage() {
-        const text = messageInput.value;
+        let text = messageInput.value;
         if (!currentChatId || !text.trim()) return;
+
         if (!ws || ws.readyState !== WebSocket.OPEN) {
           showToast(
             "Нет соединения",
-            "Перезагрузи страницу, чтобы переподключиться.",
+            "Переподключаемся… Попробуй ещё раз через пару секунд.",
             "error"
           );
           return;
         }
 
-        const msg = {
-          type: "message",
+        text = text.trim();
+        const timestamp = Date.now();
+        const clientId =
+          Math.random().toString(36).slice(2) + timestamp.toString(36);
+
+        const localMsg = {
           chatId: currentChatId,
-          text: text,
-          timestamp: Date.now(),
+          from: currentUser.username,
+          text,
+          timestamp,
+          clientId,
         };
 
+        addMessageToStore(currentChatId, localMsg);
+        renderMessages(currentChatId);
+
+        messageInput.value = "";
+        messageInput.style.height = "auto";
+
         try {
-          ws.send(JSON.stringify(msg));
-          messageInput.value = "";
-          messageInput.style.height = "auto";
+          ws.send(
+            JSON.stringify({
+              type: "message",
+              chatId: currentChatId,
+              text,
+              timestamp,
+              clientId,
+            })
+          );
         } catch {
           showToast("Ошибка", "Не удалось отправить сообщение.", "error");
         }
       }
 
-      function connectWebSocket() {
+      function setupWebSocket() {
         if (!currentUser) return;
-        try {
-          const protocol =
-            window.location.protocol === "https:" ? "wss:" : "ws:";
-          const wsUrl = protocol + "//" + window.location.host + "/ws";
-          ws = new WebSocket(wsUrl);
-
-          ws.addEventListener("open", () => {
-            ws.send(
-              JSON.stringify({ type: "auth", username: currentUser.username })
-            );
-          });
-
-          ws.addEventListener("message", (event) => {
-            let msg;
-            try {
-              msg = JSON.parse(event.data);
-            } catch {
-              return;
-            }
-
-            if (!msg || typeof msg !== "object") return;
-
-            if (msg.type === "message") {
-              if (!msg.chatId) return;
-              const messages = loadMessagesFromStorage(msg.chatId);
-              messages.push(msg);
-              saveMessagesToStorage(msg.chatId, messages);
-
-              if (msg.chatId === currentChatId) {
-                appendMessageToView(msg, true);
-              }
-            }
-
-            if (msg.type === "chatDeleted") {
-              const deletedId = msg.chatId;
-              if (currentChatId === deletedId) {
-                currentChatId = null;
-                currentChatInfo = null;
-                chatView.style.display = "none";
-                chatPlaceholder.style.display = "flex";
-                chatMessagesEl.innerHTML = "";
-                showToast(
-                  "Чат удалён",
-                  "Владелец удалил чат. Ты вернулся к списку.",
-                  "error"
-                );
-              }
-              loadChats();
-            }
-          });
-
-          ws.addEventListener("close", () => {
-            // соединение отвалилось — пользователь увидит это по тосту при отправке
-          });
-        } catch (e) {
-          console.error("WS error", e);
+        if (
+          ws &&
+          (ws.readyState === WebSocket.OPEN ||
+            ws.readyState === WebSocket.CONNECTING)
+        ) {
+          return;
         }
+
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = protocol + "//" + window.location.host + "/ws";
+        ws = new WebSocket(wsUrl);
+
+        ws.addEventListener("open", () => {
+          wsReconnectDelay = 1000;
+          updateConnectionStatus(true);
+          ws.send(
+            JSON.stringify({ type: "auth", username: currentUser.username })
+          );
+        });
+
+        ws.addEventListener("message", (event) => {
+          let msg;
+          try {
+            msg = JSON.parse(event.data);
+          } catch {
+            return;
+          }
+
+          if (!msg || typeof msg !== "object") return;
+
+          if (msg.type === "message") {
+            if (!msg.chatId) return;
+            addMessageToStore(msg.chatId, {
+              chatId: msg.chatId,
+              from: msg.from,
+              text: msg.text,
+              timestamp: msg.timestamp,
+              clientId: msg.clientId || null,
+            });
+            if (msg.chatId === currentChatId) {
+              renderMessages(currentChatId);
+            }
+          }
+
+          if (msg.type === "chatDeleted") {
+            const deletedId = msg.chatId;
+            if (currentChatId === deletedId) {
+              currentChatId = null;
+              currentChatInfo = null;
+              chatView.style.display = "none";
+              chatPlaceholder.style.display = "flex";
+              chatMessagesEl.innerHTML = "";
+              showToast(
+                "Чат удалён",
+                "Владелец удалил чат. Ты вернулся к списку.",
+                "error"
+              );
+            }
+            loadChats();
+          }
+        });
+
+        ws.addEventListener("close", () => {
+          updateConnectionStatus(false);
+          ws = null;
+          if (!wsShouldReconnect) return;
+          setTimeout(() => {
+            wsReconnectDelay = Math.min(wsReconnectDelay * 2 || 1000, 10000);
+            setupWebSocket();
+          }, wsReconnectDelay);
+        });
+
+        ws.addEventListener("error", () => {
+          updateConnectionStatus(false);
+        });
+      }
+
+      function connectWebSocket() {
+        wsShouldReconnect = true;
+        setupWebSocket();
       }
 
       async function handleCreateChat() {
@@ -1440,7 +1508,7 @@
       async function handleDeleteChat() {
         if (!currentChatInfo || !currentChatId) return;
         const ok = confirm(
-          "Удалить этот чат? Переписка исчезнет у всех участников (локальная история сохранится в браузере)."
+          "Удалить этот чат? Переписка исчезнет у всех участников (локальная история останется в их браузерах)."
         );
         if (!ok) return;
         try {
@@ -1465,14 +1533,15 @@
       }
 
       function handleLogout() {
-        localStorage.removeItem(STORAGE_USER_KEY);
-        currentUser = null;
+        wsShouldReconnect = false;
         if (ws) {
           try {
             ws.close();
           } catch {}
           ws = null;
         }
+        localStorage.removeItem(STORAGE_USER_KEY);
+        currentUser = null;
         location.reload();
       }
 
@@ -1525,6 +1594,7 @@
 
       async function bootstrap() {
         initEvents();
+        updateConnectionStatus(false);
         const storedUser = loadUserFromStorage();
         if (storedUser && storedUser.username && storedUser.password) {
           try {
@@ -1533,7 +1603,7 @@
             switchToMainScreen();
             return;
           } catch {
-            // старые данные авторизации не подошли
+            // старые данные авторизации не подошли — покажем экран входа
           }
         }
         switchToAuthScreen();
